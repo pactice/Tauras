@@ -1,0 +1,204 @@
+#ifndef __KEYBOARD_HANDLE__
+
+#define __KEYBOARD_HANDLE__
+
+#ifdef __KEYBOARD_HANDLE_GLOBALS
+#define __KEYBOARD_HANDLE_EXT 
+#else
+#define __KEYBOARD_HANDLE_EXT extern
+#endif
+
+#include "stm32f4xx.h"
+
+//步骤
+//typedef enum
+//{
+
+//	UPLIFT_ACTION,
+//	STRETCH_ACTION,
+//	CROSS_ACTION,
+//	ROTATE_ACTION,
+//	MOVE_ENTER_END,
+//} move_enter_e;
+
+typedef enum
+{
+	PRE_TO_MOVE,		//切换行走准备
+	TRUN_TO_MOVE,		//正在切换行走模式
+	CPL_MOVE,				//完成切换
+	INIT_MOVE,			//初始的行走状态
+	CLAW_MOVE_PRE,	//切换爪子有矿的行走准备
+	CLAW_MOVE,
+} move_enter_e;
+
+typedef enum
+{
+    GOLD_READY_ROTATE,
+  	GOLD_READY_UPLI,	//抬升准备
+  	GOLD_GET_READY,		//取矿准备
+	GOLD_CATCH,			//处理抉择
+	GOLD_CATCH_BACK,//取矿后返回
+	GOLD_COMPLETE,		//预处理
+
+	GOLD_IN_CLIP,		//存矿在爪子
+	GOLD_STORE,			//存矿在仓库
+	GOLD_STORE_ROLL,	//处理矿石
+	
+	
+} gold_get_e;
+
+typedef enum
+{
+    ONECLICK_READY_ROTATE,
+    ONECLICK_READY_UPLI,	//抬升准备
+	ONECLICK_GET_READY,		//取矿准备
+	ONECLICK_CATCH,			//取矿
+	ONECLICK_ROTATE,
+	ONECLICK_COMPLETE,		//取矿完成
+	ONECLICK_CHECK,
+	ONECLICK_IN_CLIP,		//存矿在爪子
+	ONECLICK_STORE,			//存矿在仓库
+	ONECLICK_STORE_ROLL,	//处理矿石
+	ONECLICK_STORE_DOWN,	//存矿在仓库(打开爪子)
+} oneclick_gold_e;
+
+typedef enum
+{
+    PICK_READY_ROTATE,
+	PICK_READY_UPLI, //取矿准备
+	PICK_GET_READY,  //抬升下落
+	PICK_BLOCK,		 //对位/夹起
+	PICK_COMPLETE,   //夹起	
+	PICK_CHOICE,	 //处理抉择
+	PICK_BLOCK_CPL,
+	PICK_IN_CLIP,	 //存矿在爪子
+	PICK_STORE,		 //存矿在仓库
+	PICK_STORE_ROLL, //存矿在仓库(旋矿)
+	PICK_STORE_DOWN, //存矿在仓库(打开爪子)
+} block_pick_e;
+
+typedef enum
+{
+    EXCHANGE_ROTATE,
+	EXCHANGE_READY,		   //兑换准备
+	EXCHANGE_ENSURE,        //确认兑换吸盘上的矿
+	
+	EXCHANGE_FRONT_READY,   //吸矿前面
+	EXCHANGE_AIM_START,	   //吸前面矿之后开始对位
+	EXCHANGE_AIM_OK,
+	
+  EXCHANGE_UP_READY,      //吸矿上面
+	EXCHANGE_AIM_UP,	   //吸上面矿之后开始对位
+	EXCHANGE_UPTOEX,	
+	
+	EXCHANGE,			   //兑换
+	
+	EXCHANGE_CHOICE,	   //兑换后处理抉择
+	
+	EXCHANGE_BACK_COMPLETE, //兑换完成
+	
+	
+} block_exchange_e;
+
+typedef enum
+{
+	SWITCH_READY,
+	SWITCH_BACK_IN_STORE,
+	SWITCH_CONVEY_BLOCK,
+	SWITCH_DIR,
+	SWITCH_BACK_IN_CLAW,
+	SWITCH_GET_BLOCK,
+	SWITCH_END,
+} switch_block_dir_e;
+
+//状态
+typedef enum
+{
+	NonGET,			//手里没矿
+	GET,				//手里有矿
+}block_store_e;
+
+//测试状态
+typedef enum
+{
+	step_one,
+    step_two,
+}test_mode_e;
+
+__KEYBOARD_HANDLE_EXT switch_block_dir_e block_dir_switch;
+__KEYBOARD_HANDLE_EXT block_exchange_e exchange_status;
+__KEYBOARD_HANDLE_EXT oneclick_gold_e		oneclick_status;
+__KEYBOARD_HANDLE_EXT gold_get_e gold_status;
+__KEYBOARD_HANDLE_EXT block_pick_e block_pick;
+__KEYBOARD_HANDLE_EXT move_enter_e move_status;
+__KEYBOARD_HANDLE_EXT block_store_e block_state[3];
+__KEYBOARD_HANDLE_EXT test_mode_e test_status;
+__KEYBOARD_HANDLE_EXT uint16_t super_status;	//三连状态 (开关 相应位置矿石的抓取)
+
+//底盘速度
+#define SPEED_VERY_SLOW	500
+#define SPEED_SLOW		1200
+#define SPEED_NORMAL	2400
+#define	SPEED_FAST		6000
+
+//阈值
+#define PUMP_SWITCH_TIME 100
+#define ROTATE_THRESHOLD 10
+#define CROSS_THRESHOLD  20
+#define STRETCH_THRESHOLD 50
+#define ADDSTRETCH_THRESHOLD 20
+#define UPLIFT_THRESHOLD 50
+
+//差值
+#define UPLIFT_ERROR0 	(fabs(uplift.cnt_fdb[0] - uplift.cnt_ref))
+#define UPLIFT_ERROR1 	(fabs(uplift.cnt_fdb[1] - uplift.cnt_unset_ref))
+#define ADDSTRETCH_ERROR0 	(fabs(addstretch.cnt_fdb[0] - addstretch.cnt_ref)) 
+#define ADDSTRETCH_ERROR1 	(fabs(addstretch.cnt_fdb[1] + addstretch.cnt_ref)) 
+#define STRETCH_ERROR0 	(fabs(stretch.cnt_fdb[0] - stretch.cnt_ref)) 
+#define STRETCH_ERROR1 	(fabs(stretch.cnt_fdb[1] + stretch.cnt_ref))
+#define ROTATE_ERROR0 	(fabs(rotate.cnt_fdb[0] - rotate.cnt_ref))
+#define ROTATE_ERROR1 	(fabs(rotate.cnt_fdb[1] + rotate.cnt_ref))
+#define CROSS_ERROR		(fabs(cross.cnt_fdb - cross.cnt_ref))
+
+//校验
+#define UPLIFT_CHECK0  (UPLIFT_ERROR0 < UPLIFT_THRESHOLD)
+#define UPLIFT_CHECK1  (UPLIFT_ERROR1 < UPLIFT_THRESHOLD)
+#define UPLIFT_CHECK   (UPLIFT_CHECK0 && UPLIFT_CHECK1 )
+
+#define STRETCH_CHECK0 (STRETCH_ERROR0 < STRETCH_THRESHOLD)
+#define STRETCH_CHECK1 (STRETCH_ERROR1 < STRETCH_THRESHOLD)
+#define STRETCH_CHECK  (STRETCH_CHECK0 && STRETCH_CHECK1 )
+
+#define ADDSTRETCH_CHECK0 (ADDSTRETCH_ERROR0 < ADDSTRETCH_THRESHOLD)
+#define ADDSTRETCH_CHECK1 (ADDSTRETCH_ERROR1 < ADDSTRETCH_THRESHOLD)
+#define ADDSTRETCH_CHECK  (ADDSTRETCH_CHECK0 && ADDSTRETCH_CHECK1 )
+
+#define ROTATE_CHECK0  (ROTATE_ERROR0 < ROTATE_THRESHOLD)
+#define ROTATE_CHECK1  (ROTATE_ERROR1 < ROTATE_THRESHOLD)
+//#define ROTATE_CHECK   (ROTATE_CHECK0 && ROTATE_CHECK1)
+#define ROTATE_CHECK   (ROTATE_CHECK1)
+#define CROSS_CHECK	   (CROSS_ERROR < CROSS_THRESHOLD)
+
+//名称
+#define CLAW_GET  block_state[0]
+#define FRONT_GET block_state[1]
+#define BACK_GET  block_state[2] 
+#define ANGLE_SCALE -0.05
+void entire_reset_handle(void);
+void keyboard_mode_switch(void);
+void keyboard_handle(void);
+void keyboard_chassis_ctrl (void);
+void Switch_Move_Step (void);
+void reset_handle(void);
+void block_state_set(void);
+void help_action_set(void);
+void Gold_Get_Step(void);
+void Gold_one_click(void);
+void block_state_auto_refresh(void);
+void block_pick_step(void);
+void block_exchange_step(void);
+void block_switch_dir(void);
+void switch_glod_state(void);
+void cradle_mode_switch(void);
+void reset_spin();
+#endif
