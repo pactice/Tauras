@@ -8,19 +8,24 @@
 
 typedef struct
 {
-		uint8_t *buffer;
-    uint16_t *pHead;       
-		uint16_t *pValidRead;
-		uint16_t *pValidWrite;
-    uint16_t *pTail;
-    uint16_t Lenght;
+		uint8_t buffer[RINGBUFF_LEN];
+    uint16_t Head;       
+    uint16_t Tail;
+    uint16_t Length;
 }RingBuff_t;
 
 extern RingBuff_t ringBuff;
+
 void RingBuff_Init(RingBuff_t *ringbuff);
-int isBufferFull(RingBuff_t *ringbuff);
-int isBufferEmpty(RingBuff_t *ringbuff);
-uint8_t writeBuffer(RingBuff_t *ringbuf, uint8_t *data,uint8_t length);
-uint8_t readBuffer(RingBuff_t *ringbuf,uint8_t *data,uint8_t length);
+int RingBuffer_IsFull(RingBuff_t *ringbuff);
+int RingBuffer_IsEmpty(RingBuff_t *ringbuff);
+int RingBuffer_Write(RingBuff_t *ringbuff,uint8_t data);
+int RingBuffer_Read(RingBuff_t *ringbuff,uint8_t *data);
+uint16_t RingBuffer_GetRemainSize(RingBuff_t *ringbuff);
+uint16_t RingBuffer_GetWriteSize(RingBuff_t *ringbuff);
+int RingBuffer_WriteData(RingBuff_t *ringbuff,uint8_t* data,uint16_t length);
+int RingBuffer_ReadData(RingBuff_t *ringbuff,uint8_t* data,uint16_t length);
+
+
 
 #endif

@@ -42,13 +42,9 @@ void USER_UART_IDLECallback(UART_HandleTypeDef *huart)
 	}
 else if(huart->Instance== USART6)	//自定义控制器调试串口
 	{
-		
-		 writeBuffer(&ringBuff,dma_diy_buf,DMA_DIYREMOTE_LEN);
-		readBuffer(&ringBuff,circle_diy_buf,DMA_DIYREMOTE_LEN);
-		diy_Read_Data(circle_diy_buf);
+		RingBuffer_WriteData(&ringBuff,dma_diy_buf,DMA_DIYREMOTE_LEN);
 		memset(&dma_diy_buf,0,sizeof(dma_diy_buf)); 
-		HAL_UART_Receive_IT(&huart6,dma_diy_buf,DMA_DIYREMOTE_LEN);
-// 		HAL_UART_Receive_DMA(huart, dma_diy_buf, DMA_DIYREMOTE_LEN);
+		HAL_UART_Receive_IT(&huart6,dma_diy_buf,DMA_DIYREMOTE_LEN);	
 	}
 }
 
@@ -84,11 +80,13 @@ void user_uart_init()
 	HAL_UART_Receive_DMA(&JUDGE_HUART, dma_judge_buf, DMA_JUDGE_LEN);
 
 	__HAL_UART_CLEAR_IDLEFLAG(&DIYREMOTE_HUART);
-//	__HAL_UART_ENABLE_IT(&DIYREMOTE_HUART, UART_IT_IDLE);
-	HAL_UART_Receive_IT(&DIYREMOTE_HUART,dma_diy_buf,DMA_DIYREMOTE_LEN);
+	__HAL_UART_ENABLE_IT(&DIYREMOTE_HUART, UART_IT_IDLE);
+	HAL_UART_Receive_IT(&huart6,dma_diy_buf,DMA_DIYREMOTE_LEN);	
 //	HAL_UART_Receive_DMA(&DIYREMOTE_HUART, dma_diy_buf, DMA_DIYREMOTE_LEN);
 	
 	__HAL_UART_CLEAR_IDLEFLAG(&TOF_HUART);
 	__HAL_UART_ENABLE_IT(&TOF_HUART, UART_IT_IDLE);
 	HAL_UART_Receive_DMA(&TOF_HUART, dma_tof_buf, DMA_DIYREMOTE_LEN);
+	
+	RingBuff_Init(&ringBuff);
 }
