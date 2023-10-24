@@ -43,7 +43,7 @@ void USER_UART_IDLECallback(UART_HandleTypeDef *huart)
 else if(huart->Instance== USART6)	//自定义控制器调试串口
 	{
 		RingBuffer_WriteData(&ringBuff,dma_diy_buf,DMA_DIYREMOTE_LEN);
-		memset(&dma_diy_buf,0,sizeof(dma_diy_buf)); 
+		
 		HAL_UART_Receive_IT(&huart6,dma_diy_buf,DMA_DIYREMOTE_LEN);	
 	}
 }
